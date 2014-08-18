@@ -34,7 +34,7 @@ public class MainActivity extends ActionBarActivity {
 		Logger.d(TAG, "onCreate.");
 		tv = (TextView) findViewById(R.id.tips);
 		tv.setText("FAIL");
-		tv.setTextSize(45);
+		tv.setTextSize(120);
 		tv.setTextColor(android.graphics.Color.WHITE);
 		tv.setShadowLayer(1.0f, 2.0f, 2.0f, android.graphics.Color.BLACK);
 		tv.setVisibility(View.VISIBLE);
