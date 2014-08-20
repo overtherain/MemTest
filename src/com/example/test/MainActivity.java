@@ -22,6 +22,9 @@ import android.widget.VideoView;
 public class MainActivity extends Activity {
 	private final static String TAG = "MainActivity";
 	private final static String VIDEO_PATH = "/storage/sdcard0/test.avi";
+	private final static int STOP_PLAYER = 0;
+	private final static int START_PLAYER = 1;
+	private final static int RESTART_PLAYER = 2;
 	private TextView resultTv;
 	private EditText etNum;
 	private Button startBtn;
@@ -50,27 +53,8 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
-				vplayer.setVideoPath(VIDEO_PATH);
-				vplayer.start();
-				startBtn.setVisibility(View.GONE);
-				stopBtn.setVisibility(View.VISIBLE);
-				resultTv.setVisibility(View.INVISIBLE);
-				thread = Integer.parseInt(etNum.getText().toString());
-				etNum.setEnabled(false);
-				for (int i = 0; i < thread; i++) {
-					tdMemcheck = new Thread(new Runnable() {
-
-						@Override
-						public void run() {
-							// TODO Auto-generated method stub
-							int no = Integer.parseInt(Thread.currentThread().getName());
-							ret = new memcheck().doTask(no);
-							android.util.Log.d(TAG, ret);
-						}
-					});
-					tdMemcheck.setName("" + i);
-					tdMemcheck.start();
-				}
+				Logger.d(TAG, "click startBtn");
+				doTask(START_PLAYER);
 			}
 		});
 		stopBtn = (Button) findViewById(R.id.stopBtn);
@@ -83,45 +67,97 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
-				vplayer.pause();
-				startBtn.setVisibility(View.VISIBLE);
-				stopBtn.setVisibility(View.GONE);
-				if(!"running ok".contains(ret)){
-					resultTv.setVisibility(View.VISIBLE);
-				}
-				etNum.setEnabled(true);
-				// tdMemcheck.destroy();
-				// tdMemcheck.dumpStack();
+				Logger.d(TAG, "click stopBtn");
+				doTask(STOP_PLAYER);
 			}
 
 		});
 		vplayer = (VideoView) findViewById(R.id.player);
 		vplayer.setKeepScreenOn(true);
 		vplayer.setVisibility(View.VISIBLE);
-		//vplayer.setMinimumHeight(750);
-		//vplayer.setMinimumWidth(450);
-		vplayer.setScaleX(450);
-		vplayer.setScaleY(750);
+		vplayer.setMinimumHeight(750);
+		vplayer.setMinimumWidth(450);
 		vplayer.setOnCompletionListener(new OnCompletionListener() {
 
 			@Override
 			public void onCompletion(MediaPlayer arg0) {
 				// TODO Auto-generated method stub
-				Logger.d(TAG, "The video this loop play finished.");
-				vplayer.setVideoPath(VIDEO_PATH);
-				vplayer.start();
+				doTask(RESTART_PLAYER);
 			}
 
 		});
 	}
 
+	public void doTask(int sw) {
+		String msg = "";
+		switch (sw) {
+		case 1:
+			msg = "startVideo";
+			startVideo();
+			break;
+		case 0:
+			msg = "stopVideo";
+			stopVideo();
+			break;
+		case 2:
+			msg = "restartVideo";
+			restartVideo();
+			break;
+		default:
+			msg = "unknow";
+			break;
+		}
+		Logger.d(TAG, msg);
+	}
+
+	private void startVideo() {
+		vplayer.setVideoPath(VIDEO_PATH);
+		vplayer.start();
+		startBtn.setVisibility(View.GONE);
+		stopBtn.setVisibility(View.VISIBLE);
+		resultTv.setVisibility(View.INVISIBLE);
+		thread = Integer.parseInt(etNum.getText().toString());
+		etNum.setEnabled(false);
+		for (int i = 0; i < thread; i++) {
+			tdMemcheck = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					int no = Integer.parseInt(Thread.currentThread().getName());
+					ret = new memcheck().doTask(no);
+					Logger.d(TAG, ret);
+				}
+			});
+			tdMemcheck.setName("" + i);
+			tdMemcheck.start();
+		}
+	}
+
+	private void stopVideo() {
+		vplayer.pause();
+		startBtn.setVisibility(View.VISIBLE);
+		stopBtn.setVisibility(View.GONE);
+		if (!"running ok".contains(ret)) {
+			resultTv.setVisibility(View.VISIBLE);
+		}
+		etNum.setEnabled(true);
+	}
+
+	private void restartVideo() {
+		vplayer.setVideoPath(VIDEO_PATH);
+		vplayer.start();
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		/*
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		Window win = getWindow();
 		win.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		*/
 		setContentView(R.layout.activity_main);
 		Logger.d(TAG, "onCreate.");
 		initview();
@@ -131,6 +167,6 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		vplayer.resume();
+		doTask(START_PLAYER);
 	}
 }
