@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 				stopBtn.setVisibility(View.VISIBLE);
 				resultTv.setVisibility(View.INVISIBLE);
 				thread = Integer.parseInt(etNum.getText().toString());
-				// result = new memutils(thread).doTask();
+				etNum.setEnabled(false);
 				for (int i = 0; i < thread; i++) {
 					tdMemcheck = new Thread(new Runnable() {
 
@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 							// TODO Auto-generated method stub
 							int no = Integer.parseInt(Thread.currentThread().getName());
 							String tmp = new memcheck().doTask(no);
-							android.util.Log.d(TAG, "tmp: " + tmp);
+							android.util.Log.d(TAG, tmp);
 						}
 					});
 					tdMemcheck.setName("" + i);
@@ -84,6 +84,7 @@ public class MainActivity extends Activity {
 				startBtn.setVisibility(View.VISIBLE);
 				stopBtn.setVisibility(View.INVISIBLE);
 				resultTv.setVisibility(View.VISIBLE);
+				etNum.setEnabled(true);
 				// tdMemcheck.destroy();
 				// tdMemcheck.dumpStack();
 			}
