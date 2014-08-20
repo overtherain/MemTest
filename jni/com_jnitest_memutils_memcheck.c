@@ -11,13 +11,86 @@
 #define E_STR_LEN_DEF 4096
 #define TAG "MEMCHECK"
 
+#define RET_OK	0
+#define RET_MEM_BASE_E	100
+#define RET_SET_BASE_E	200
+#define RET_RD_BASE_E	300
+#define RET_CHK_BASE_E	400
+#define RET_FILE_BASE_E	500
+#define RET_MEM_NULL_E	(RET_MEM_BASE_E + 1)
+#define RET_SET_55_E	(RET_SET_BASE_E + 1)
+#define RET_SET_AA_E	(RET_SET_BASE_E + 2)
+#define RET_RD_55_E	(RET_RD_BASE_E + 1)
+#define RET_RD_AA_E	(RET_RD_BASE_E + 2)
+#define RET_CHK_55_E	(RET_CHK_BASE_E + 1)
+#define RET_CHK_AA_E	(RET_CHK_BASE_E + 2)
+#define RET_FILE_RD_E	(RET_FILE_BASE_E + 1)
+#define RET_FILE_WT_E	(RET_FILE_BASE_E + 2)
+#define RET_FILE_OP_E	(RET_FILE_BASE_E + 3)
+
+#define RET_SRT_OK		"gdz.log thread: %d doTask=%d -> running ok."
+#define RET_STR_MEM_NULL_E	"gdz.log thread: %d doTask=%d -> MEM is NULL."
+#define RET_STR_SET_55_E	"gdz.log thread: %d doTask=%d -> SET 55 Error."
+#define RET_STR_SET_AA_E	"gdz.log thread: %d doTask=%d -> SET AA Error."
+#define RET_STR_RD_55_E		"gdz.log thread: %d doTask=%d -> READ 55 Error."
+#define RET_STR_RD_AA_E		"gdz.log thread: %d doTask=%d -> READ AA Error."
+#define RET_STR_CHK_55_E	"gdz.log thread: %d doTask=%d -> CHECK 55 Error."
+#define RET_STR_CHK_AA_E	"gdz.log thread: %d doTask=%d -> CHECK AA Error."
+#define RET_STR_FILE_RD_E	"gdz.log thread: %d doTask=%d -> FILE read Error."
+#define RET_STR_FILE_WT_E	"gdz.log thread: %d doTask=%d -> FILE write Error."
+#define RET_STR_FILE_OP_E	"gdz.log thread: %d doTask=%d -> FILE open Error."
+#define RET_STR_UNKNOW_E	"gdz.log thread: %d doTask=%d -> Unknow Error."
+
 char gE_Str[E_STR_LEN_DEF];
 int debug = 1;
 
 JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask(JNIEnv *env, jobject obj, jint thread)
 {
-	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log thread: %d doTask=%d\n", thread, doTask(thread));
-	return (*env)->NewStringUTF(env, (char*)gE_Str);
+	int ret = RET_OK;
+	int curThread = (int)thread;
+	char *retStr = NULL;
+	ret = doTask(thread);
+	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log thread: %d doTask=%d\n", thread, ret);
+	switch(ret){
+	case RET_OK:
+		sprintf(retStr, RET_SRT_OK, curThread, ret);
+		break;
+	case RET_MEM_NULL_E:
+		sprintf(retStr, RET_STR_MEM_NULL_E, curThread, ret);
+		break;
+	case RET_SET_55_E:
+		sprintf(retStr, RET_STR_SET_55_E, curThread, ret);
+		break;
+	case RET_SET_AA_E:
+		sprintf(retStr, RET_STR_SET_AA_E, curThread, ret);
+		break;
+	case RET_RD_55_E:
+		sprintf(retStr, RET_STR_RD_55_E, curThread, ret);
+		break;
+	case RET_RD_AA_E:
+		sprintf(retStr, RET_STR_RD_AA_E, curThread, ret);
+		break;
+	case RET_CHK_55_E:
+		sprintf(retStr, RET_STR_CHK_55_E, curThread, ret);
+		break;
+	case RET_CHK_AA_E:
+		sprintf(retStr, RET_STR_CHK_AA_E, curThread, ret);
+		break;
+	case RET_FILE_RD_E:
+		sprintf(retStr, RET_STR_FILE_RD_E, curThread, ret);
+		break;
+	case RET_FILE_WT_E:
+		sprintf(retStr, RET_STR_FILE_WT_E, curThread, ret);
+		break;
+	case RET_FILE_OP_E:
+		sprintf(retStr, RET_STR_FILE_OP_E, curThread, ret);
+		break;
+	default:
+		sprintf(retStr, RET_STR_UNKNOW_E, curThread, ret);
+		break;
+	}
+	__android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", retStr);
+	return (*env)->NewStringUTF(env, (char*)retStr);
 }
 
 int doTask(int num)
@@ -31,26 +104,28 @@ int doTask(int num)
 
 	int gRelease = 1;
 
-	int ret = 0;
+	int ret = RET_OK;
 	char tmp = 0;
 	int i = 0;
 	// 1. malloc a gpAREA
 	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log Thread: %d Malloc gpAREA and gpERR_AREA.\n", gCur_Thread);
 	gpAREA = (char *)malloc(sizeof(char) * AREA_LEN_DEF);
-	gpERR_AREA = (char *)malloc(sizeof(char) * AREA_LEN_DEF);
 	if(gpAREA == NULL){
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gpAREA is NULL.\n", gCur_Thread);
-		ret = 1001;
+		ret = RET_MEM_NULL_E;
 	}
+	//assert(gpAREA != NULL);
+	// 2. clear it to 0
+	memset(gpAREA, 0, sizeof(char)*AREA_LEN_DEF);
+	#if 0
+	gpERR_AREA = (char *)malloc(sizeof(char) * AREA_LEN_DEF);
 	if(gpERR_AREA == NULL){
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gpERR_AREA is NULL.\n", gCur_Thread);
 		ret = 1002;
 	}
-	//assert(gpAREA != NULL);
 	//assert(gpERR_AREA != NULL);
-	// 2. clear it to 0
-	memset(gpAREA, 0, sizeof(char)*AREA_LEN_DEF);
 	memset(gpERR_AREA, 0, sizeof(char)*AREA_LEN_DEF);
+	#endif
 
 	// 3. set to value
 	while(1){
@@ -67,7 +142,7 @@ int doTask(int num)
 					&& gRelease
 					&& 0x0 == (tmp & ~value)){
 			}else{
-				ret = 1;
+				ret = RET_SET_55_E;
 				sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gpAREA, gCur_Thread);
@@ -85,7 +160,7 @@ int doTask(int num)
 					&& gRelease
 					&& 0x0 == (tmp & ~value)){
 			}else{
-				ret = 2;
+				ret = RET_CHK_55_E;
 				sprintf(gE_Str, "[ERROR] set 0xaa at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gpAREA, gCur_Thread);
@@ -104,7 +179,7 @@ int doTask(int num)
 					&& gRelease
 					&& 0x0 == (tmp & ~value)){
 			}else{
-				ret = 3;
+				ret = RET_SET_AA_E;
 				sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d, gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gpAREA, gCur_Thread);
@@ -121,7 +196,7 @@ int doTask(int num)
 					&& gRelease
 					&& 0x0 == (tmp & ~value)){
 			}else{
-				ret = 4;
+				ret = RET_CHK_AA_E;
 				sprintf(gE_Str, "[ERROR] set 0xaa at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gpAREA, gCur_Thread);
@@ -130,7 +205,9 @@ int doTask(int num)
 		}
 	}
 	free(gpAREA);
+	#if 0
 	free(gpERR_AREA);
+	#endif
 	return ret;
 }
 
@@ -173,7 +250,7 @@ int check(char value, int no, c)
 #endif
 int dumpMem(char *str, int num)
 {
-	int ret = 0;
+	int ret = RET_OK;
 	int i = 0;
 	FILE *out = NULL;
 	char * gE_File = "/sdcard/mem.dump";
@@ -185,7 +262,7 @@ int dumpMem(char *str, int num)
 	if(out == NULL){
 		out = fopen(gE_File, "w+");
 		__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log dumpMem-> gCur_Thread: %d out is NULL.\n", num);
-		ret = 1;
+		ret = RET_FILE_OP_E;
 	}else{
 		__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log dumpMem-> gCur_Thread: %d open memcheck.error file ok.\n", num);
 		fputs("===================== MEM.DUMP begin >>>>>>>>>>>>>>>>>>>>>>>\n", out);
@@ -193,9 +270,9 @@ int dumpMem(char *str, int num)
 		fputs("This is the thread ", out);
 		fputs(tmp, out);
 		fputs(" memory dump area and error postion.\n", out);
-		fputs("gE_Str:\n", out);
-		fputs(gE_Str, out);
-		fputs("\ngpERR_AREA:\n", out);
+		//fputs("gE_Str:\n", out);
+		//fputs(gE_Str, out);
+		fputs("\nMEM.DUMP AREA:\n", out);
 		for(i=0; i<AREA_LEN_DEF; i++){
 			sprintf(tmp, "%02x", str[i]);
 			__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log dumpMem-> tmp: %s", tmp);
