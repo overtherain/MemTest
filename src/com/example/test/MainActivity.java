@@ -11,6 +11,8 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -28,6 +30,7 @@ public class MainActivity extends Activity {
 	private int result = 0;
 	private int thread = 0;
 	private Thread tdMemcheck;
+	private String ret = "OK";
 
 	public void initview() {
 		resultTv = (TextView) findViewById(R.id.tips);
@@ -49,7 +52,7 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				vplayer.setVideoPath(VIDEO_PATH);
 				vplayer.start();
-				startBtn.setVisibility(View.INVISIBLE);
+				startBtn.setVisibility(View.GONE);
 				stopBtn.setVisibility(View.VISIBLE);
 				resultTv.setVisibility(View.INVISIBLE);
 				thread = Integer.parseInt(etNum.getText().toString());
@@ -61,8 +64,8 @@ public class MainActivity extends Activity {
 						public void run() {
 							// TODO Auto-generated method stub
 							int no = Integer.parseInt(Thread.currentThread().getName());
-							String tmp = new memcheck().doTask(no);
-							android.util.Log.d(TAG, tmp);
+							ret = new memcheck().doTask(no);
+							android.util.Log.d(TAG, ret);
 						}
 					});
 					tdMemcheck.setName("" + i);
@@ -82,8 +85,10 @@ public class MainActivity extends Activity {
 				// TODO Auto-generated method stub
 				vplayer.pause();
 				startBtn.setVisibility(View.VISIBLE);
-				stopBtn.setVisibility(View.INVISIBLE);
-				resultTv.setVisibility(View.VISIBLE);
+				stopBtn.setVisibility(View.GONE);
+				if(!"running ok".contains(ret)){
+					resultTv.setVisibility(View.VISIBLE);
+				}
 				etNum.setEnabled(true);
 				// tdMemcheck.destroy();
 				// tdMemcheck.dumpStack();
@@ -93,8 +98,10 @@ public class MainActivity extends Activity {
 		vplayer = (VideoView) findViewById(R.id.player);
 		vplayer.setKeepScreenOn(true);
 		vplayer.setVisibility(View.VISIBLE);
-		vplayer.setMinimumHeight(750);
-		vplayer.setMinimumWidth(450);
+		//vplayer.setMinimumHeight(750);
+		//vplayer.setMinimumWidth(450);
+		vplayer.setScaleX(450);
+		vplayer.setScaleY(750);
 		vplayer.setOnCompletionListener(new OnCompletionListener() {
 
 			@Override
@@ -111,6 +118,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		Window win = getWindow();
+		win.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
 		Logger.d(TAG, "onCreate.");
 		initview();
