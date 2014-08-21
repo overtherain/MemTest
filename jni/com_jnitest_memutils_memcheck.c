@@ -11,12 +11,18 @@
 #define E_STR_LEN_DEF 4096
 #define TAG "MEMCHECK"
 
+#define STR_TYPE_BASE	10
+#define STR_TYPE_ST_E	(STR_TYPE_BASE + 1)
+#define STR_TYPE_POS_E	(STR_TYPE_BASE + 2)
+#define STR_TYPE_DUMP_E	(STR_TYPE_BASE + 3)
+
 #define RET_OK	0
 #define RET_MEM_BASE_E	100
 #define RET_SET_BASE_E	200
 #define RET_RD_BASE_E	300
 #define RET_CHK_BASE_E	400
 #define RET_FILE_BASE_E	500
+
 #define RET_MEM_NULL_E	(RET_MEM_BASE_E + 1)
 #define RET_SET_55_E	(RET_SET_BASE_E + 1)
 #define RET_SET_AA_E	(RET_SET_BASE_E + 2)
@@ -145,13 +151,14 @@ int doTask(int num)
 				ret = RET_SET_55_E;
 				sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
-				dumpMem(gpAREA, gCur_Thread);
+				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
+				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
 				break;
 			}
 		}
 		if(1 == debug){
 			debug = 0;
-			dumpMem(gpAREA, gCur_Thread);
+			dumpMem(gE_Str, gCur_Thread, STR_TYPE_ST_E);
 		}
 		// 4. read if value
 		for(i=0; i<AREA_LEN_DEF; i++){
@@ -163,7 +170,8 @@ int doTask(int num)
 				ret = RET_CHK_55_E;
 				sprintf(gE_Str, "[ERROR] set 0xaa at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
-				dumpMem(gpAREA, gCur_Thread);
+				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
+				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
 				break;
 			}
 		}
@@ -182,12 +190,13 @@ int doTask(int num)
 				ret = RET_SET_AA_E;
 				sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d, gE_Str: %s\n", gCur_Thread, gE_Str);
-				dumpMem(gpAREA, gCur_Thread);
+				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
+				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
 				break;
 			}
 		}
 		if(1 == debug){
-			dumpMem(gpAREA, gCur_Thread);
+			dumpMem(gpAREA, gCur_Thread, STR_TYPE_ST_E);
 		}
 		// 4. read if value
 		for(i=0; i<AREA_LEN_DEF; i++){
@@ -199,7 +208,8 @@ int doTask(int num)
 				ret = RET_CHK_AA_E;
 				sprintf(gE_Str, "[ERROR] set 0xaa at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
-				dumpMem(gpAREA, gCur_Thread);
+				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
+				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
 				break;
 			}
 		}
@@ -248,7 +258,7 @@ int check(char value, int no, c)
 	return ret;
 }
 #endif
-int dumpMem(char *str, int num)
+int dumpMem(char *str, int num, int type)
 {
 	int ret = RET_OK;
 	int i = 0;
@@ -265,21 +275,27 @@ int dumpMem(char *str, int num)
 		ret = RET_FILE_OP_E;
 	}else{
 		__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log dumpMem-> gCur_Thread: %d open memcheck.error file ok.\n", num);
-		fputs("===================== MEM.DUMP begin >>>>>>>>>>>>>>>>>>>>>>>\n", out);
-		sprintf(tmp, "%02d", num);
-		fputs("This is the thread ", out);
-		fputs(tmp, out);
-		fputs(" memory dump area and error postion.\n", out);
-		//fputs("gE_Str:\n", out);
-		//fputs(gE_Str, out);
-		fputs("\nMEM.DUMP AREA:\n", out);
-		for(i=0; i<AREA_LEN_DEF; i++){
-			sprintf(tmp, "%02x", str[i]);
-			__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log dumpMem-> tmp: %s", tmp);
+		if(STR_TYPE_ST_E == type){
+			fputs("===================== PROGRAM RUNNING. >>>>>>>>>>>>>>>>>>>>>>>\n", out);
+		}else if(STR_TYPE_POS_E == type){
+			fputs("===================== ERROR.POSTION >>>>>>>>>>>>>>>>>>>>>>>\n", out);
+		}else if(STR_TYPE_DUMP_E == type){
+			fputs("===================== MEM.DUMP begin >>>>>>>>>>>>>>>>>>>>>>>\n", out);
+			sprintf(tmp, "%02d", num);
+			fputs("This is the thread ", out);
 			fputs(tmp, out);
+			fputs(" memory dump area and error postion.\n", out);
+			//fputs("gE_Str:\n", out);
+			//fputs(gE_Str, out);
+			fputs("\nMEM.DUMP AREA:\n", out);
+			for(i=0; i<AREA_LEN_DEF; i++){
+				sprintf(tmp, "%02x", str[i]);
+				__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log dumpMem-> tmp: %s", tmp);
+				fputs(tmp, out);
+			}
+			fputs("\n", out);
+			fputs("===================== MEM.DUMP end <<<<<<<<<<<<<<<<<<<<<<<\n\n", out);
 		}
-		fputs("\n", out);
-		fputs("===================== MEM.DUMP end <<<<<<<<<<<<<<<<<<<<<<<\n\n", out);
 	}
 	fclose(out);
 

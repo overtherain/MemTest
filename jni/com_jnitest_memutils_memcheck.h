@@ -18,7 +18,7 @@ JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask
 int check(char set, int no);
 int setArea(char value);
 int doTask();
-int dumpMem(char *str, int num);
+int dumpMem(char *str, int num, int type);
 
 #ifdef __cplusplus
 }
