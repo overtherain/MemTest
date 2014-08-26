@@ -54,7 +54,7 @@ JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask(JNIEnv *env,
 {
 	int ret = RET_OK;
 	int curThread = (int)thread;
-	char *retStr = NULL;
+	char retStr[255];
 	ret = doTask(thread);
 	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log thread: %d doTask=%d\n", thread, ret);
 	switch(ret){
@@ -95,7 +95,8 @@ JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask(JNIEnv *env,
 		sprintf(retStr, RET_STR_UNKNOW_E, curThread, ret);
 		break;
 	}
-	__android_log_print(ANDROID_LOG_DEBUG, TAG, "%s", retStr);
+	__android_log_print(ANDROID_LOG_DEBUG, TAG, "retSrt:%s", retStr);
+	sprintf(retStr, "%d", ret);
 	return (*env)->NewStringUTF(env, (char*)retStr);
 }
 
@@ -147,13 +148,25 @@ int doTask(int num)
 			if( (value == (tmp & value))
 					&& gRelease
 					&& 0x0 == (tmp & ~value)){
+#ifdef TEST
+				if(0 == debug){
+					ret = RET_SET_55_E;
+					sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
+					__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
+					dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
+					dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
+					goto FINISH;
+//					break;
+				}
+#endif
 			}else{
 				ret = RET_SET_55_E;
 				sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				break;
+				goto FINISH;
+//				break;
 			}
 		}
 		if(1 == debug){
@@ -172,7 +185,8 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				break;
+				goto FINISH;
+//				break;
 			}
 		}
 		value = 0xaa;
@@ -192,7 +206,8 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d, gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				break;
+				goto FINISH;
+//				break;
 			}
 		}
 		if(1 == debug){
@@ -210,10 +225,12 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log Thread: %d gE_Str: %s\n", gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				break;
+				goto FINISH;
+//				break;
 			}
 		}
 	}
+FINISH:
 	free(gpAREA);
 	#if 0
 	free(gpERR_AREA);
