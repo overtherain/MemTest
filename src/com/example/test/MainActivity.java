@@ -1,6 +1,7 @@
 package com.example.test;
 
 import com.cg.memtest.R;
+import com.jnitest.memutils.MEMCHECK;
 import com.jnitest.memutils.memcheck;
 import com.self.debug.Logger;
 
@@ -24,6 +25,8 @@ public class MainActivity extends Activity {
 	private final static int STOP_PLAYER = 0;
 	private final static int START_PLAYER = 1;
 	private final static int RESTART_PLAYER = 2;
+	private final static int FINISH_PLAYER = 3;
+
 	private TextView resultTv;
 	private EditText etNum;
 	private Button startBtn;
@@ -37,7 +40,7 @@ public class MainActivity extends Activity {
 	public void initview() {
 		resultTv = (TextView) findViewById(R.id.tips);
 		resultTv.setText("FAIL");
-		resultTv.setTextSize(120);
+		resultTv.setTextSize(60);
 		resultTv.setTextColor(android.graphics.Color.RED);
 		resultTv.setShadowLayer(1.0f, 2.0f, 2.0f, android.graphics.Color.BLUE);
 		resultTv.setVisibility(View.VISIBLE);
@@ -90,15 +93,15 @@ public class MainActivity extends Activity {
 	public void doTask(int sw) {
 		String msg = "";
 		switch (sw) {
-		case 1:
+		case START_PLAYER:
 			msg = "startVideo";
 			startVideo();
 			break;
-		case 0:
+		case STOP_PLAYER:
 			msg = "stopVideo";
-			stopVideo();
+			stopVideo(STOP_PLAYER);
 			break;
-		case 2:
+		case RESTART_PLAYER:
 			msg = "restartVideo";
 			restartVideo();
 			break;
@@ -125,7 +128,11 @@ public class MainActivity extends Activity {
 					// TODO Auto-generated method stub
 					int no = Integer.parseInt(Thread.currentThread().getName());
 					ret = new memcheck().doTask(no);
+					result = Integer.parseInt(ret);
 					Logger.d(TAG, ret);
+					if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
+						stopVideo(FINISH_PLAYER);
+					}
 				}
 			});
 			tdMemcheck.setName("" + i);
@@ -133,12 +140,20 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	private void stopVideo() {
+	private void stopVideo(int type) {
+		String tmp = "";
 		vplayer.pause();
 		startBtn.setVisibility(View.VISIBLE);
 		stopBtn.setVisibility(View.GONE);
-		if (!"running ok".contains(ret)) {
+		if (FINISH_PLAYER != type) {
+			resultTv.setText(MEMCHECK.RET_STR_PAUSE_E);
 			resultTv.setVisibility(View.VISIBLE);
+		} else {
+			if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
+				tmp = MEMCHECK.parseResult(TAG, result);
+				resultTv.setText(tmp);
+				resultTv.setVisibility(View.VISIBLE);
+			}
 		}
 		etNum.setEnabled(true);
 	}
