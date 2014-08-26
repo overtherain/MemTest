@@ -157,10 +157,11 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log %s->%3d Thread: %d gE_Str: %s\n", __func__, __LINE__, gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				goto FINISH;
-//				break;
+				//goto FINISH;
+				break;
 			}
 		}
+		if(RET_OK != ret) break;
 		if(1 == debug){
 			debug = 0;
 			dumpMem(gE_Str, gCur_Thread, STR_TYPE_ST_E);
@@ -174,13 +175,13 @@ int doTask(int num)
 					&& 0x0 == (tmp & ~value)){
 #ifdef TEST
 				if(0 == debug && 1023 == i){
-					ret = RET_SET_55_E;
+					ret = RET_CHK_55_E;
 					sprintf(gE_Str, "[ERROR] set 0x55 at %04d, value: %02x", gE_Pos, gE_Val);
 					__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log %s->%3d Thread: %d gE_Str: %s\n", __func__, __LINE__, gCur_Thread, gE_Str);
 					dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 					dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-					goto FINISH;
-//					break;
+					//goto FINISH;
+					break;
 				}
 #endif
 			}else{
@@ -189,10 +190,11 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log %s->%3d Thread: %d gE_Str: %s\n", __func__, __LINE__, gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				goto FINISH;
-//				break;
+				//goto FINISH;
+				break;
 			}
 		}
+		if(RET_OK != ret) break;
 		value = 0xaa;
 		if(1 == debug){
 			__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log %s->%3d set %02x Thread: %d Begin to set aa to mem.\n",
@@ -211,10 +213,11 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log %s->%3d Thread: %d, gE_Str: %s\n", __func__, __LINE__, gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				goto FINISH;
-//				break;
+				//goto FINISH;
+				break;
 			}
 		}
+		if(RET_OK != ret) break;
 		if(1 == debug){
 			dumpMem(gpAREA, gCur_Thread, STR_TYPE_ST_E);
 		}
@@ -231,12 +234,13 @@ int doTask(int num)
 				__android_log_print(ANDROID_LOG_ERROR, TAG, "gdz.log %s->%3d Thread: %d gE_Str: %s\n", __func__, __LINE__, gCur_Thread, gE_Str);
 				dumpMem(gE_Str, gCur_Thread, STR_TYPE_POS_E);
 				dumpMem(gpAREA, gCur_Thread, STR_TYPE_DUMP_E);
-				goto FINISH;
-//				break;
+				//goto FINISH;
+				break;
 			}
 		}
+		if(RET_OK != ret) break;
 	}
-FINISH:
+//FINISH:
 	free(gpAREA);
 	#if 0
 	free(gpERR_AREA);
