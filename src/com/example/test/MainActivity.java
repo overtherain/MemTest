@@ -24,8 +24,11 @@ public class MainActivity extends Activity {
 	private final static String VIDEO_PATH = "/storage/sdcard0/test.avi";
 	private final static int STOP_PLAYER = 0;
 	private final static int START_PLAYER = 1;
-	private final static int RESTART_PLAYER = 2;
-	private final static int FINISH_PLAYER = 3;
+	private final static int RESUME_PLAYER = 2;
+	private final static int RESTART_PLAYER = 3;
+	private final static int FINISH_PLAYER = 4;
+	private final static int CREATE_RUN = 0;
+	private final static int RESUME_RUN = 1;
 
 	private TextView resultTv;
 	private EditText etNum;
@@ -36,10 +39,12 @@ public class MainActivity extends Activity {
 	private int thread = 0;
 	private Thread tdMemcheck;
 	private String ret = "OK";
+	private int newRun = 0;
 
 	public void initview() {
+		Logger.d(TAG, "initview.");
 		resultTv = (TextView) findViewById(R.id.tips);
-		resultTv.setText("FAIL");
+		resultTv.setText("WAITING....");
 		resultTv.setTextSize(60);
 		resultTv.setTextColor(android.graphics.Color.RED);
 		resultTv.setShadowLayer(1.0f, 2.0f, 2.0f, android.graphics.Color.BLUE);
@@ -56,6 +61,7 @@ public class MainActivity extends Activity {
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
 				Logger.d(TAG, "click startBtn");
+				thread = Integer.parseInt(etNum.getText().toString());
 				doTask(START_PLAYER);
 			}
 		});
@@ -84,6 +90,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onCompletion(MediaPlayer arg0) {
 				// TODO Auto-generated method stub
+				Logger.d(TAG, "onCompletion.");
 				doTask(RESTART_PLAYER);
 			}
 
@@ -91,11 +98,16 @@ public class MainActivity extends Activity {
 	}
 
 	public void doTask(int sw) {
+		Logger.d(TAG, "doTask. sw: " + sw);
 		String msg = "";
 		switch (sw) {
 		case START_PLAYER:
 			msg = "startVideo";
 			startVideo();
+			break;
+		case RESUME_PLAYER:
+			msg = "resumeVideo";
+			resumeVideo();
 			break;
 		case STOP_PLAYER:
 			msg = "stopVideo";
@@ -113,14 +125,25 @@ public class MainActivity extends Activity {
 	}
 
 	private void startVideo() {
+		Logger.d(TAG, "startVideo.");
+		resumeVideo();
+		doCheck();
+	}
+
+	private void resumeVideo(){
+		Logger.d(TAG, "resumeVideo.");
 		vplayer.setVideoPath(VIDEO_PATH);
 		vplayer.start();
 		startBtn.setVisibility(View.GONE);
 		stopBtn.setVisibility(View.VISIBLE);
 		resultTv.setVisibility(View.INVISIBLE);
-		thread = Integer.parseInt(etNum.getText().toString());
 		etNum.setEnabled(false);
-		for (int i = 0; i < thread; i++) {
+	}
+
+	private void doCheck(){
+		Logger.d(TAG, "doCheck.");
+		Logger.d(TAG, "thread: " + thread);
+		for (; thread > 0; thread--) {
 			tdMemcheck = new Thread(new Runnable() {
 
 				@Override
@@ -135,12 +158,12 @@ public class MainActivity extends Activity {
 					}
 				}
 			});
-			tdMemcheck.setName("" + i);
+			tdMemcheck.setName("" + thread);
 			tdMemcheck.start();
 		}
 	}
-
 	private void stopVideo(int type) {
+		Logger.d(TAG, "stopVideo. type: " + type);
 		String tmp = "";
 		vplayer.pause();
 		startBtn.setVisibility(View.VISIBLE);
@@ -159,6 +182,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void restartVideo() {
+		Logger.d(TAG, "restartVideo.");
 		vplayer.setVideoPath(VIDEO_PATH);
 		vplayer.start();
 	}
@@ -175,15 +199,21 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		Logger.d(TAG, "onCreate.");
 		initview();
+		newRun = CREATE_RUN;
 	}
 
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		Logger.d(TAG, "onResume.");
 		if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		}
-		doTask(START_PLAYER);
+		if(CREATE_RUN == newRun){
+			newRun = RESUME_RUN;
+		}else if(RESUME_RUN == newRun) {
+			doTask(RESUME_PLAYER);
+		}
 	}
 }
