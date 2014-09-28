@@ -3,6 +3,10 @@ package com.jnitest.memutils;
 import com.self.debug.Logger;
 
 public class MEMCHECK {
+	public final static int STAT_BASE_INT = 10;
+	public final static int STAT_CONTINUE_INT = (STAT_BASE_INT + 1);
+	public final static int STAT_BREAK_INT = (STAT_BASE_INT + 2);
+
 	public final static int RET_OK = 0;
 	public final static int RET_MEM_BASE_E = 100;
 	public final static int RET_SET_BASE_E = 200;
@@ -34,10 +38,20 @@ public class MEMCHECK {
 	public final static String RET_STR_FILE_OP_E = "[FAIL]\nFILE open Error.";
 	public final static String RET_STR_UNKNOW_E = "[FAIL]\nUnknow Error.";
 	public final static String RET_STR_PAUSE_E = "[PAUSE]\nJUST PAUSE.";
+	public final static String RET_STR_SET_CMD_BREAK = "[PAUSE]\nsendCmd => Break.";
+	public final static String RET_STR_SET_CMD_CONTINUE = "[PAUSE]\nsendCmd => Continue.";
 
 	public static String parseResult(String TAG, int code) {
 		String ret = "";
 		switch (code) {
+		case STAT_BREAK_INT:
+			Logger.d(TAG, RET_STR_SET_CMD_BREAK);
+			ret = RET_STR_SET_CMD_BREAK;
+			break;
+		case STAT_CONTINUE_INT:
+			Logger.d(TAG, RET_STR_SET_CMD_CONTINUE);
+			ret = RET_STR_SET_CMD_CONTINUE;
+			break;
 		case RET_MEM_NULL_E:
 			Logger.d(TAG, RET_STR_MEM_NULL_E);
 			ret = RET_STR_MEM_NULL_E;
