@@ -16,12 +16,16 @@
 #define STR_TYPE_POS_E	(STR_TYPE_BASE + 2)
 #define STR_TYPE_DUMP_E	(STR_TYPE_BASE + 3)
 
+#define STAT_BASE_INT		10
+#define STAT_CONTINUE_INT	(STAT_BASE_INT + 1)
+#define STAT_BREAK_INT	(STAT_BASE_INT + 2)
+
 #define RET_OK	0
-#define RET_MEM_BASE_E	100
-#define RET_SET_BASE_E	200
-#define RET_RD_BASE_E	300
-#define RET_CHK_BASE_E	400
-#define RET_FILE_BASE_E	500
+#define RET_MEM_BASE_E		100
+#define RET_SET_BASE_E		200
+#define RET_RD_BASE_E		300
+#define RET_CHK_BASE_E		400
+#define RET_FILE_BASE_E		500
 
 #define RET_MEM_NULL_E	(RET_MEM_BASE_E + 1)
 #define RET_SET_55_E	(RET_SET_BASE_E + 1)
@@ -34,23 +38,26 @@
 #define RET_FILE_WT_E	(RET_FILE_BASE_E + 2)
 #define RET_FILE_OP_E	(RET_FILE_BASE_E + 3)
 
-#define RET_SRT_OK		"gdz.log thread: %d doTask=%d -> running ok."
-#define RET_STR_MEM_NULL_E	"gdz.log thread: %d doTask=%d -> MEM is NULL."
-#define RET_STR_SET_55_E	"gdz.log thread: %d doTask=%d -> SET 55 Error."
-#define RET_STR_SET_AA_E	"gdz.log thread: %d doTask=%d -> SET AA Error."
-#define RET_STR_RD_55_E		"gdz.log thread: %d doTask=%d -> READ 55 Error."
-#define RET_STR_RD_AA_E		"gdz.log thread: %d doTask=%d -> READ AA Error."
-#define RET_STR_CHK_55_E	"gdz.log thread: %d doTask=%d -> CHECK 55 Error."
-#define RET_STR_CHK_AA_E	"gdz.log thread: %d doTask=%d -> CHECK AA Error."
-#define RET_STR_FILE_RD_E	"gdz.log thread: %d doTask=%d -> FILE read Error."
-#define RET_STR_FILE_WT_E	"gdz.log thread: %d doTask=%d -> FILE write Error."
-#define RET_STR_FILE_OP_E	"gdz.log thread: %d doTask=%d -> FILE open Error."
-#define RET_STR_UNKNOW_E	"gdz.log thread: %d doTask=%d -> Unknow Error."
+#define RET_SRT_OK		"gdz.log thread:%d doTask=%d -> running ok."
+#define RET_STR_MEM_NULL_E	"gdz.log thread:%d doTask=%d -> MEM is NULL."
+#define RET_STR_SET_55_E	"gdz.log thread:%d doTask=%d -> SET 55 Error."
+#define RET_STR_SET_AA_E	"gdz.log thread:%d doTask=%d -> SET AA Error."
+#define RET_STR_RD_55_E		"gdz.log thread:%d doTask=%d -> READ 55 Error."
+#define RET_STR_RD_AA_E		"gdz.log thread:%d doTask=%d -> READ AA Error."
+#define RET_STR_CHK_55_E	"gdz.log thread:%d doTask=%d -> CHECK 55 Error."
+#define RET_STR_CHK_AA_E	"gdz.log thread:%d doTask=%d -> CHECK AA Error."
+#define RET_STR_FILE_RD_E	"gdz.log thread:%d doTask=%d -> FILE read Error."
+#define RET_STR_FILE_WT_E	"gdz.log thread:%d doTask=%d -> FILE write Error."
+#define RET_STR_FILE_OP_E	"gdz.log thread:%d doTask=%d -> FILE open Error."
+#define RET_STR_UNKNOW_E	"gdz.log thread:%d doTask=%d -> Unknow Error."
+#define RET_STR_SET_CMD_BREAK		"gdz.log thread:%d sendCmd:%d => Break."
+#define RET_STR_SET_CMD_CONTINUE	"gdz.log thread:%d sendCmd:%d => Continue."
 
 //#define TEST
 
 char gE_Str[E_STR_LEN_DEF];
 int debug = 1;
+int isBreak = 0;
 
 JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask(JNIEnv *env, jobject obj, jint thread)
 {
@@ -102,6 +109,31 @@ JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_doTask(JNIEnv *env,
 	return (*env)->NewStringUTF(env, (char*)retStr);
 }
 
+JNIEXPORT jstring JNICALL Java_com_jnitest_memutils_memcheck_sendCmd(JNIEnv *env, jobject obj, jint isbreak)
+{
+	int ret = RET_OK;
+	int tmp = (int)isbreak;
+	char retStr[255];
+	isBreak = isbreak;
+	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log %s->%3d thread: %d isbreak=%d\n", __func__, __LINE__, isBreak, ret);
+	switch(tmp){
+	case STAT_BREAK_INT:
+		isBreak = STAT_BREAK_INT;
+		sprintf(retStr, RET_STR_SET_CMD_BREAK, isBreak, ret);
+		break;
+	case STAT_CONTINUE_INT:
+		isBreak = STAT_CONTINUE_INT;
+		sprintf(retStr, RET_STR_SET_CMD_CONTINUE, isBreak, ret);
+		break;
+	default:
+		sprintf(retStr, RET_STR_UNKNOW_E, isBreak, ret);
+		break;
+	}
+	__android_log_print(ANDROID_LOG_DEBUG, TAG, "gdz.log %s->%3d retSrt:%s", __func__, __LINE__, retStr);
+	sprintf(retStr, "%d", ret);
+	return (*env)->NewStringUTF(env, (char*)retStr);
+}
+
 int doTask(int num)
 {
 	char * gpAREA;
@@ -138,6 +170,10 @@ int doTask(int num)
 
 	// 3. set to value
 	while(1){
+		if(1 == isBreak){
+			ret = STAT_BREAK_INT;
+			break;
+		}
 		// 3. set to value
 		value = 0x55;
 		if(1 == debug){
