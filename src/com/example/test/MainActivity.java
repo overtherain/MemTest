@@ -22,6 +22,7 @@ import android.os.RemoteException;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -61,6 +62,8 @@ public class MainActivity extends Activity {
 
 	public void initview() {
 		Logger.d(TAG, "initview.");
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		resultTv = (TextView) findViewById(R.id.tips);
 		resultTv.setText("WAITING....");
 		resultTv.setTextSize(60);
@@ -109,12 +112,12 @@ public class MainActivity extends Activity {
 			public void onCompletion(MediaPlayer arg0) {
 				// TODO Auto-generated method stub
 				Logger.d(TAG, "onCompletion.");
-				if(false == isBatteryFull()){
+				if (false == isBatteryFull()) {
 					Logger.d(TAG, "low battery, need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
 					doTask(STOP_PLAYER);
-//					finish();
-				}else{
+					// finish();
+				} else {
 					Logger.d(TAG, "battery status is ok, no need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
 					doTask(RESTART_PLAYER);
@@ -167,12 +170,11 @@ public class MainActivity extends Activity {
 				gStatus = status;
 				gHealth = health;
 				gLevel = level;
-				Logger.d(TAG, "monitorBatteryState:\n\tgRawlevel = " + gRawlevel
-						+ ", gScale = " + gScale
-						+ ", gStatus = " + gStatus
-						+ ", gHealth = " + gHealth
-						+ ", gLevel = " + gLevel);
-				if(false == isBatteryFull()){
+				Logger.d(TAG, "monitorBatteryState:\n\tgRawlevel = "
+						+ gRawlevel + ", gScale = " + gScale + ", gStatus = "
+						+ gStatus + ", gHealth = " + gHealth + ", gLevel = "
+						+ gLevel);
+				if (false == isBatteryFull()) {
 					Logger.d(TAG, "low battery, need to charge");
 				}
 			}
@@ -185,10 +187,8 @@ public class MainActivity extends Activity {
 		boolean isFull = false;
 		StringBuilder sb = new StringBuilder();
 		Logger.d(TAG, "isBatteryFull:\n\tgRawlevel = " + gRawlevel
-				+ ", gScale = " + gScale
-				+ ", gStatus = " + gStatus
-				+ ", gHealth = " + gHealth
-				+ ", gLevel = " + gLevel);
+				+ ", gScale = " + gScale + ", gStatus = " + gStatus
+				+ ", gHealth = " + gHealth + ", gLevel = " + gLevel);
 		if (BatteryManager.BATTERY_HEALTH_OVERHEAT == gHealth) {
 			sb.append("'s battery feels very hot!");
 		} else {
@@ -353,10 +353,11 @@ public class MainActivity extends Activity {
 		} else if (RESUME_RUN == newRun) {
 			doTask(RESUME_PLAYER);
 		}
-		if(null != curMemcheck){
+		if (null != curMemcheck) {
 			curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
-		}else{
-			Logger.d(TAG, "curMemcheck is null, create a new thread to run memckech.");
+		} else {
+			Logger.d(TAG,
+					"curMemcheck is null, create a new thread to run memckech.");
 			doMemCheck();
 		}
 	}
@@ -366,14 +367,14 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		Logger.d(TAG, "onDestory");
-		if(null != curMemcheck){
+		if (null != curMemcheck) {
 			Logger.d(TAG, "tdMemcheck is not null, just release the resource.");
 			Logger.d(TAG, "send cmd to stop background check memory thread");
 			curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
 			doTask(STOP_PLAYER);
-			//tdMemcheck.stop();
-			//tdMemcheck.destroy();
-		}else{
+			// tdMemcheck.stop();
+			// tdMemcheck.destroy();
+		} else {
 			Logger.d(TAG, "tdMemcheck is null, no need to release.");
 		}
 		unregisterReceiver(batteryLevelRcvr);
