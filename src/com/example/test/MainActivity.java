@@ -1,12 +1,14 @@
 package com.example.test;
 
 import java.util.Timer;
+import java.util.TimerTask;
 
 import com.cg.memtest.R;
 import com.jnitest.memutils.MEMCHECK;
 import com.jnitest.memutils.memcheck;
 import com.self.debug.Logger;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,7 +20,8 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.RemoteException;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -37,6 +40,7 @@ public class MainActivity extends Activity {
 	private final static int RESUME_PLAYER = 2;
 	private final static int RESTART_PLAYER = 3;
 	private final static int FINISH_PLAYER = 4;
+	private final static int WAIT_CHARGE = 5;
 	private final static int CREATE_RUN = 0;
 	private final static int RESUME_RUN = 1;
 
@@ -115,7 +119,9 @@ public class MainActivity extends Activity {
 				if (false == isBatteryFull()) {
 					Logger.d(TAG, "low battery, need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
-					doTask(STOP_PLAYER);
+					doTask(WAIT_CHARGE);
+					Logger.d(TAG, "Add a schedule to check battery charging.");
+					timer.schedule(task, 10000);
 					// finish();
 				} else {
 					Logger.d(TAG, "battery status is ok, no need to charge");
@@ -195,7 +201,7 @@ public class MainActivity extends Activity {
 			switch (gStatus) {
 			case BatteryManager.BATTERY_STATUS_UNKNOWN:
 				sb.append("no battery.");
-				isFull = true;
+//				isFull = true;
 				break;
 			case BatteryManager.BATTERY_STATUS_CHARGING:
 				sb.append("'s battery");
@@ -204,7 +210,7 @@ public class MainActivity extends Activity {
 							+ gLevel + "]");
 				} else if (gLevel <= 84) {
 					sb.append(" is charging." + "[" + gLevel + "]");
-					isFull = true;
+//					isFull = true;
 				} else {
 					sb.append(" will be fully charged.");
 					isFull = true;
@@ -219,7 +225,7 @@ public class MainActivity extends Activity {
 							+ "[" + gLevel + "]");
 				} else {
 					sb.append("'s battery level is" + "[" + gLevel + "]");
-					isFull = true;
+//					isFull = true;
 				}
 				break;
 			case BatteryManager.BATTERY_STATUS_FULL:
@@ -233,10 +239,51 @@ public class MainActivity extends Activity {
 		return isFull;
 	}
 
+	Timer timer = new Timer();
+	@SuppressLint("HandlerLeak")
+	Handler hdBatStatus = new Handler(){
+
+		@Override
+		public void handleMessage(Message msg) {
+			// TODO Auto-generated method stub
+			Logger.d(TAG, "HandleMessage for check charging status...");
+			switch(msg.what){
+			case MEMCHECK.STAT_BREAK_INT:
+				doTask(WAIT_CHARGE);
+				break;
+			case MEMCHECK.STAT_CONTINUE_INT:
+				doTask(RESTART_PLAYER);
+				break;
+			}
+			super.handleMessage(msg);
+		}
+
+	};
+	TimerTask task = new TimerTask(){
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			Logger.d(TAG, "Timer begin to check battery status....");
+			Message message = new Message();
+			if(false == isBatteryFull()){
+				message.what = MEMCHECK.STAT_BREAK_INT;
+			}else{
+				message.what = MEMCHECK.STAT_CONTINUE_INT;
+			}
+			hdBatStatus.sendMessage(message);
+		}
+
+	};
+
 	public void doTask(int sw) {
 		Logger.d(TAG, "doTask ---> begin");
 		String msg = "";
 		switch (sw) {
+		case WAIT_CHARGE:
+			msg = "Wait for charge";
+			stopVideo(STOP_PLAYER);
+			break;
 		case START_PLAYER:
 			msg = "startVideo";
 			startVideo();
@@ -309,6 +356,9 @@ public class MainActivity extends Activity {
 		stopBtn.setVisibility(View.GONE);
 		if (FINISH_PLAYER != type) {
 			resultTv.setText(MEMCHECK.RET_STR_PAUSE_E);
+			resultTv.setVisibility(View.VISIBLE);
+		} else if(WAIT_CHARGE == type){
+			resultTv.setText(MEMCHECK.RET_STR_WAIT_CHARGE);
 			resultTv.setVisibility(View.VISIBLE);
 		} else {
 			if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {

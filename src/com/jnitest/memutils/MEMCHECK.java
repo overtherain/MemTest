@@ -38,6 +38,7 @@ public class MEMCHECK {
 	public final static String RET_STR_FILE_OP_E = "[FAIL]\nFILE open Error.";
 	public final static String RET_STR_UNKNOW_E = "[FAIL]\nUnknow Error.";
 	public final static String RET_STR_PAUSE_E = "[PAUSE]\nJUST PAUSE.";
+	public final static String RET_STR_WAIT_CHARGE = "[PAUSE]\nCharging...";
 	public final static String RET_STR_SET_CMD_BREAK = "[PAUSE]\nsendCmd => Break.";
 	public final static String RET_STR_SET_CMD_CONTINUE = "[PAUSE]\nsendCmd => Continue.";
 
