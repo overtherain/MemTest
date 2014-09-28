@@ -374,6 +374,7 @@ public class MainActivity extends Activity {
 			doTask(STOP_PLAYER);
 			// tdMemcheck.stop();
 			// tdMemcheck.destroy();
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			Logger.d(TAG, "tdMemcheck is null, no need to release.");
 		}
