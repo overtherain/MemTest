@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
 	private int gStatus = 0;
 	private int gHealth = 0;
 	private int gLevel = 0;
+	private int playStatus = STOP_PLAYER;
 
 	public void initview() {
 		Logger.d(TAG, "initview.");
@@ -123,11 +124,12 @@ public class MainActivity extends Activity {
 					Logger.d(TAG, "low battery, need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
 					doTask(WAIT_CHARGE);
-					if(FIRST_RUN == addTimer){
-						Logger.d(TAG, "Add a schedule to check battery charging.");
-						timer.schedule(task, 10000);
-						addTimer = UNFIRST_RUN;
-					}
+					/*
+					 * if (FIRST_RUN == addTimer) { Logger.d(TAG,
+					 * "Add a schedule to check battery charging.");
+					 * timer.schedule(task, 1000, 2000); addTimer = UNFIRST_RUN;
+					 * }
+					 */
 					// finish();
 				} else {
 					Logger.d(TAG, "battery status is ok, no need to charge");
@@ -197,54 +199,62 @@ public class MainActivity extends Activity {
 
 	private boolean isNeedPause() {
 		boolean needpause = true;
-		StringBuilder sb = new StringBuilder();
+		String str = "BatteryManager.InitSettings";
 		Logger.d(TAG, "isBatteryFull:\n\tgRawlevel = " + gRawlevel
 				+ ", gScale = " + gScale + ", gStatus = " + gStatus
 				+ ", gHealth = " + gHealth + ", gLevel = " + gLevel);
 		if (BatteryManager.BATTERY_HEALTH_OVERHEAT == gHealth) {
-//			needpause = true;
+			// needpause = true;
+			ret = "BatteryManager.BATTERY_HEALTH_OVERHEAT";
 		} else {
 			switch (gStatus) {
 			case BatteryManager.BATTERY_STATUS_UNKNOWN:
+				str = "BatteryManager.BATTERY_STATUS_UNKNOWN";
 				break;
 			case BatteryManager.BATTERY_STATUS_CHARGING:
+				str = "BatteryManager.BATTERY_STATUS_CHARGING";
 				if (gLevel <= 33) {
 					needpause = true;
 				} else if (gLevel <= 84) {
-//				} else if (gLevel <= 36) {
+					needpause = false;
+				} else {
 					needpause = false;
 				}
 				break;
 			case BatteryManager.BATTERY_STATUS_DISCHARGING:
+				ret = "BatteryManager.BATTERY_STATUS_DISCHARGING and ";
 			case BatteryManager.BATTERY_STATUS_NOT_CHARGING:
+				ret += "BatteryManager.BATTERY_STATUS_NOT_CHARGING";
 				if (gLevel == 0) {
-					sb.append(" needs charging right away.");
 					needpause = true;
 				} else if (gLevel > 0 && gLevel <= 33) {
-					sb.append(" is about ready to be recharged, battery level is low"
-							+ "[" + gLevel + "]");
 					needpause = true;
+				} else {
+					needpause = false;
 				}
 				break;
 			case BatteryManager.BATTERY_STATUS_FULL:
+				ret = "BatteryManager.BATTERY_STATUS_FULL";
 				needpause = false;
 				break;
 			default:
+				ret = "BatteryManager.Default";
 				break;
 			}
 		}
+		Logger.d(TAG, "Now battery status is: " + str);
 		return needpause;
 	}
 
 	Timer timer = new Timer();
-	@SuppressLint("HandlerLeak")
-	Handler hdBatStatus = new Handler(){
+
+	Handler hdBatStatus = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
 			// TODO Auto-generated method stub
 			Logger.d(TAG, "HandleMessage for check charging status...");
-			switch(msg.what){
+			switch (msg.what) {
 			case MEMCHECK.STAT_BREAK_INT:
 				doTask(WAIT_CHARGE);
 				break;
@@ -256,17 +266,17 @@ public class MainActivity extends Activity {
 		}
 
 	};
-	TimerTask task = new TimerTask(){
+	TimerTask task = new TimerTask() {
 
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			Logger.d(TAG, "Timer begin to check battery status....");
 			Message message = new Message();
-			if(false == isNeedPause()){
-				message.what = MEMCHECK.STAT_BREAK_INT;
-			}else{
+			if (false == isNeedPause()) {
 				message.what = MEMCHECK.STAT_CONTINUE_INT;
+			} else {
+				message.what = MEMCHECK.STAT_BREAK_INT;
 			}
 			hdBatStatus.sendMessage(message);
 		}
@@ -283,7 +293,9 @@ public class MainActivity extends Activity {
 			break;
 		case START_PLAYER:
 			msg = "startVideo";
-			startVideo();
+			if(STOP_PLAYER == playStatus){
+				startVideo();
+			}
 			break;
 		case RESUME_PLAYER:
 			msg = "resumeVideo";
@@ -313,6 +325,8 @@ public class MainActivity extends Activity {
 
 	private void resumeVideo() {
 		Logger.d(TAG, "resumeVideo.");
+
+		playStatus = START_PLAYER;
 		vplayer.setVideoPath(VIDEO_PATH);
 		vplayer.start();
 		prepState();
@@ -348,15 +362,16 @@ public class MainActivity extends Activity {
 	private void stopVideo(int type) {
 		Logger.d(TAG, "stopVideo. type: " + type);
 		String tmp = "";
+		playStatus = STOP_PLAYER;
 		vplayer.pause();
 		startBtn.setVisibility(View.VISIBLE);
 		stopBtn.setVisibility(View.GONE);
 		if (FINISH_PLAYER != type) {
-			if(WAIT_CHARGE == type){
+			if (WAIT_CHARGE == type) {
 				Logger.d(TAG, "Waiting for charging battery.");
 				resultTv.setText(MEMCHECK.RET_STR_WAIT_CHARGE);
 				resultTv.setVisibility(View.VISIBLE);
-			}else{
+			} else {
 				Logger.d(TAG, "not finish playing.");
 				resultTv.setText(MEMCHECK.RET_STR_PAUSE_E);
 				resultTv.setVisibility(View.VISIBLE);
@@ -389,6 +404,11 @@ public class MainActivity extends Activity {
 		initview();
 		monitorBatteryState();
 		newRun = CREATE_RUN;
+		if (FIRST_RUN == addTimer) {
+			Logger.d(TAG, "Add a schedule to check battery charging.");
+			timer.schedule(task, 5000, 10000);
+			addTimer = UNFIRST_RUN;
+		}
 	}
 
 	@Override
@@ -405,7 +425,9 @@ public class MainActivity extends Activity {
 			doTask(RESUME_PLAYER);
 		}
 		if (null != curMemcheck) {
-			curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+			if (STOP_PLAYER == playStatus) {
+				curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+			}
 		} else {
 			Logger.d(TAG,
 					"curMemcheck is null, create a new thread to run memckech.");
@@ -425,7 +447,8 @@ public class MainActivity extends Activity {
 			doTask(STOP_PLAYER);
 			// tdMemcheck.stop();
 			// tdMemcheck.destroy();
-			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+			getWindow().clearFlags(
+					WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			Logger.d(TAG, "tdMemcheck is null, no need to release.");
 		}
