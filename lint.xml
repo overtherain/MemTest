@@ -3,4 +3,7 @@
     <issue id="NewApi">
         <ignore path="src/com/example/test/MainActivity.java" />
     </issue>
+    <issue id="ProtectedPermissions">
+        <ignore path="AndroidManifest.xml" />
+    </issue>
 </lint>
