@@ -406,7 +406,7 @@ public class MainActivity extends Activity {
 		newRun = CREATE_RUN;
 		if (FIRST_RUN == addTimer) {
 			Logger.d(TAG, "Add a schedule to check battery charging.");
-			timer.schedule(task, 5000, 10000);
+			timer.schedule(task, 5000, 60000*5);
 			addTimer = UNFIRST_RUN;
 		}
 	}
