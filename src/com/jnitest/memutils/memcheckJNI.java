@@ -2,7 +2,7 @@ package com.jnitest.memutils;
 
 import com.self.debug.Logger;
 
-public class memcheck {
+public class memcheckJNI {
 
 	private final static String TAG = "memcheck-jni";
 	public native String doTask(int no);
@@ -10,7 +10,7 @@ public class memcheck {
 	static{
 		System.loadLibrary("memcheck");
 	}
-	public memcheck(){
+	public memcheckJNI(){
 		Logger.d(TAG, "Create a object.");
 	}
 }

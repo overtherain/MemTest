@@ -5,7 +5,7 @@ import java.util.TimerTask;
 
 import com.cg.memtest.R;
 import com.jnitest.memutils.MEMCHECK;
-import com.jnitest.memutils.memcheck;
+import com.jnitest.memutils.memcheckJNI;
 import com.self.debug.Logger;
 
 import android.annotation.SuppressLint;
@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 	private VideoView vplayer;
 	private int result = 0;
 	private int thread = 0;
-	private memcheck curMemcheck;
+	private memcheckJNI curMemcheck;
 	private Thread tdMemcheck;
 	private String ret = "OK";
 	private int newRun = 0;
@@ -139,7 +139,7 @@ public class MainActivity extends Activity {
 			}
 
 		});
-		curMemcheck = new memcheck();
+		curMemcheck = new memcheckJNI();
 	}
 
 	private int prepState() {
@@ -337,7 +337,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void doMemCheck() {
-		Logger.d(TAG, "doCheck.");
+		Logger.d(TAG, "doMemCheck.");
 		Logger.d(TAG, "thread: " + thread);
 		for (; thread > 0; thread--) {
 			tdMemcheck = new Thread(new Runnable() {
