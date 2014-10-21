@@ -5,7 +5,7 @@ import java.util.TimerTask;
 
 import com.cg.memtest.R;
 import com.jnitest.memutils.MEMCHECK;
-import com.jnitest.memutils.memcheckJNI;
+import com.jnitest.memutils.memcheck;
 import com.self.debug.Logger;
 
 import android.annotation.SuppressLint;
@@ -18,6 +18,9 @@ import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+// liujun.modify
+import android.media.MediaPlayer.OnPreparedListener;
+// liujun.modify
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -53,7 +56,7 @@ public class MainActivity extends Activity {
 	private VideoView vplayer;
 	private int result = 0;
 	private int thread = 0;
-	private memcheckJNI curMemcheck;
+	private memcheck curMemcheck;
 	private Thread tdMemcheck;
 	private String ret = "OK";
 	private int newRun = 0;
@@ -67,6 +70,11 @@ public class MainActivity extends Activity {
 	private int gHealth = 0;
 	private int gLevel = 0;
 	private int playStatus = STOP_PLAYER;
+// liujun.modify
+	private boolean hasSet = false;
+	private boolean mPrepared = false;
+	private boolean mNeedStart = false;
+// liujun.modify
 
 	public void initview() {
 		Logger.d(TAG, "initview.");
@@ -139,7 +147,22 @@ public class MainActivity extends Activity {
 			}
 
 		});
-		curMemcheck = new memcheckJNI();
+		// liujun.modify
+		vplayer.setOnPreparedListener(new OnPreparedListener(){
+			@Override
+			public void onPrepared(MediaPlayer mediaPlayer) {
+				mPrepared = true;
+				if(mNeedStart){
+					vplayer.start();
+					mNeedStart = false;
+					Logger.d(TAG, "[DayL]prepared, let's rock");
+				} else {
+					Logger.d(TAG, "[DayL]prepared, but NOT start");
+				}
+			}
+		});
+		// liujun.modify
+		curMemcheck = new memcheck();
 	}
 
 	private int prepState() {
@@ -294,6 +317,14 @@ public class MainActivity extends Activity {
 		case START_PLAYER:
 			msg = "startVideo";
 			if(STOP_PLAYER == playStatus){
+				// liujun.modify
+				if(!hasSet){
+					hasSet = true;
+					vplayer.setVideoPath(VIDEO_PATH);
+				} else {
+					Logger.d(TAG, "[DayL]video path set");
+				}
+				// liujun.modify
 				startVideo();
 			}
 			break;
@@ -327,8 +358,15 @@ public class MainActivity extends Activity {
 		Logger.d(TAG, "resumeVideo.");
 
 		playStatus = START_PLAYER;
-		vplayer.setVideoPath(VIDEO_PATH);
-		vplayer.start();
+		// liujun.modify
+		if(!mPrepared){
+			Logger.d(TAG, "[DayL]start on NOT prepared");
+			mNeedStart = true;
+		} else {
+			Logger.d(TAG, "[DayL]start on prepared");
+			vplayer.start();
+		}
+		// liujun.modify
 		prepState();
 		startBtn.setVisibility(View.GONE);
 		stopBtn.setVisibility(View.VISIBLE);
@@ -388,7 +426,9 @@ public class MainActivity extends Activity {
 
 	private void restartVideo() {
 		Logger.d(TAG, "restartVideo.");
-		vplayer.setVideoPath(VIDEO_PATH);
+		// liujun.modify
+		//vplayer.setVideoPath(VIDEO_PATH);
+		// liujun.modify
 		vplayer.start();
 	}
 
