@@ -132,13 +132,6 @@ public class MainActivity extends Activity {
 					Logger.d(TAG, "low battery, need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
 					doTask(WAIT_CHARGE);
-					/*
-					 * if (FIRST_RUN == addTimer) { Logger.d(TAG,
-					 * "Add a schedule to check battery charging.");
-					 * timer.schedule(task, 1000, 2000); addTimer = UNFIRST_RUN;
-					 * }
-					 */
-					// finish();
 				} else {
 					Logger.d(TAG, "battery status is ok, no need to charge");
 					curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
@@ -401,7 +394,10 @@ public class MainActivity extends Activity {
 		Logger.d(TAG, "stopVideo. type: " + type);
 		String tmp = "";
 		playStatus = STOP_PLAYER;
-		vplayer.pause();
+		if(vplayer.isPlaying()){
+//			vplayer.stopPlayback();
+			vplayer.pause();
+		}
 		startBtn.setVisibility(View.VISIBLE);
 		stopBtn.setVisibility(View.GONE);
 		if (FINISH_PLAYER != type) {
@@ -427,9 +423,13 @@ public class MainActivity extends Activity {
 	private void restartVideo() {
 		Logger.d(TAG, "restartVideo.");
 		// liujun.modify
-		//vplayer.setVideoPath(VIDEO_PATH);
-		// liujun.modify
+		if(vplayer.isPlaying()){
+			vplayer.stopPlayback();
+			Logger.d(TAG, "need to stop then start.");
+		}
+		vplayer.setVideoPath(VIDEO_PATH);
 		vplayer.start();
+		// liujun.modify
 	}
 
 	@Override
@@ -458,6 +458,9 @@ public class MainActivity extends Activity {
 		Logger.d(TAG, "onResume.");
 		if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		}
+		if(null != vplayer){
+			vplayer.requestFocus();
 		}
 		if (CREATE_RUN == newRun) {
 			newRun = RESUME_RUN;
