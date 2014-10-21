@@ -461,6 +461,10 @@ public class MainActivity extends Activity {
 		}
 		if (CREATE_RUN == newRun) {
 			newRun = RESUME_RUN;
+			if(!hasSet){
+				hasSet = true;
+				vplayer.setVideoPath(VIDEO_PATH);
+			}
 		} else if (RESUME_RUN == newRun) {
 			doTask(RESUME_PLAYER);
 		}
@@ -491,6 +495,9 @@ public class MainActivity extends Activity {
 					WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		} else {
 			Logger.d(TAG, "tdMemcheck is null, no need to release.");
+		}
+		if(null != vplayer){
+			vplayer.stopPlayback();
 		}
 		unregisterReceiver(batteryLevelRcvr);
 	}
