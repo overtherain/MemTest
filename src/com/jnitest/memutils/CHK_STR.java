@@ -2,7 +2,7 @@ package com.jnitest.memutils;
 
 import com.self.debug.Logger;
 
-public class MEMCHECK {
+public class CHK_STR {
 	public final static int STAT_BASE_INT = 10;
 	public final static int STAT_CONTINUE_INT = (STAT_BASE_INT + 1);
 	public final static int STAT_BREAK_INT = (STAT_BASE_INT + 2);

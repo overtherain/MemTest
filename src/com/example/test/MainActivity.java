@@ -4,7 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.cg.memtest.R;
-import com.jnitest.memutils.MEMCHECK;
+import com.jnitest.memutils.CHK_STR;
 import com.jnitest.memutils.memcheck;
 import com.self.debug.Logger;
 
@@ -130,11 +130,11 @@ public class MainActivity extends Activity {
 				Logger.d(TAG, "onCompletion.");
 				if (true == isNeedPause()) {
 					Logger.d(TAG, "low battery, need to charge");
-					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
+					curMemcheck.sendCmd(CHK_STR.STAT_BREAK_INT);
 					doTask(WAIT_CHARGE);
 				} else {
 					Logger.d(TAG, "battery status is ok, no need to charge");
-					curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+					curMemcheck.sendCmd(CHK_STR.STAT_CONTINUE_INT);
 					doTask(RESTART_PLAYER);
 				}
 			}
@@ -159,7 +159,7 @@ public class MainActivity extends Activity {
 	}
 
 	private int prepState() {
-		int ret = MEMCHECK.RET_OK;
+		int ret = CHK_STR.RET_OK;
 		// set audio status
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
@@ -271,10 +271,10 @@ public class MainActivity extends Activity {
 			// TODO Auto-generated method stub
 			Logger.d(TAG, "HandleMessage for check charging status...");
 			switch (msg.what) {
-			case MEMCHECK.STAT_BREAK_INT:
+			case CHK_STR.STAT_BREAK_INT:
 				doTask(WAIT_CHARGE);
 				break;
-			case MEMCHECK.STAT_CONTINUE_INT:
+			case CHK_STR.STAT_CONTINUE_INT:
 				doTask(RESUME_PLAYER);
 				break;
 			}
@@ -290,9 +290,9 @@ public class MainActivity extends Activity {
 			Logger.d(TAG, "Timer begin to check battery status....");
 			Message message = new Message();
 			if (false == isNeedPause()) {
-				message.what = MEMCHECK.STAT_CONTINUE_INT;
+				message.what = CHK_STR.STAT_CONTINUE_INT;
 			} else {
-				message.what = MEMCHECK.STAT_BREAK_INT;
+				message.what = CHK_STR.STAT_BREAK_INT;
 			}
 			hdBatStatus.sendMessage(message);
 		}
@@ -380,7 +380,7 @@ public class MainActivity extends Activity {
 					ret = curMemcheck.doTask(no);
 					result = Integer.parseInt(ret);
 					Logger.d(TAG, ret);
-					if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
+					if (Integer.parseInt(ret) != CHK_STR.RET_OK) {
 						stopVideo(FINISH_PLAYER);
 					}
 				}
@@ -403,16 +403,16 @@ public class MainActivity extends Activity {
 		if (FINISH_PLAYER != type) {
 			if (WAIT_CHARGE == type) {
 				Logger.d(TAG, "Waiting for charging battery.");
-				resultTv.setText(MEMCHECK.RET_STR_WAIT_CHARGE);
+				resultTv.setText(CHK_STR.RET_STR_WAIT_CHARGE);
 				resultTv.setVisibility(View.VISIBLE);
 			} else {
 				Logger.d(TAG, "not finish playing.");
-				resultTv.setText(MEMCHECK.RET_STR_PAUSE_E);
+				resultTv.setText(CHK_STR.RET_STR_PAUSE_E);
 				resultTv.setVisibility(View.VISIBLE);
 			}
 		} else {
-			if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
-				tmp = MEMCHECK.parseResult(TAG, result);
+			if (Integer.parseInt(ret) != CHK_STR.RET_OK) {
+				tmp = CHK_STR.parseResult(TAG, result);
 				resultTv.setText(tmp);
 				resultTv.setVisibility(View.VISIBLE);
 			}
@@ -473,7 +473,7 @@ public class MainActivity extends Activity {
 		}
 		if (null != curMemcheck) {
 			if (STOP_PLAYER == playStatus) {
-				curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+				curMemcheck.sendCmd(CHK_STR.STAT_CONTINUE_INT);
 			}
 		} else {
 			Logger.d(TAG,
@@ -490,7 +490,7 @@ public class MainActivity extends Activity {
 		if (null != curMemcheck) {
 			Logger.d(TAG, "tdMemcheck is not null, just release the resource.");
 			Logger.d(TAG, "send cmd to stop background check memory thread");
-			curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
+			curMemcheck.sendCmd(CHK_STR.STAT_BREAK_INT);
 			doTask(STOP_PLAYER);
 			// tdMemcheck.stop();
 			// tdMemcheck.destroy();
