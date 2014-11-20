@@ -37,7 +37,8 @@ import android.widget.VideoView;
 //public class MainActivity extends ActionBarActivity {
 public class MainActivity extends Activity {
 	private final static String TAG = "com.example.test/MainActivity";
-	private final static String VIDEO_PATH = "/storage/sdcard0/test.avi";
+	//private final static String VIDEO_PATH = "/storage/sdcard0/test.avi";
+	private final static String VIDEO_PATH = "/storage/emulated/legacy/test.avi";
 	private final static int STOP_PLAYER = 0;
 	private final static int START_PLAYER = 1;
 	private final static int RESUME_PLAYER = 2;
