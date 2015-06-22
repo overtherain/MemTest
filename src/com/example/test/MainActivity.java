@@ -1,5 +1,6 @@
 package com.example.test;
 
+import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -32,14 +33,19 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 //public class MainActivity extends ActionBarActivity {
 public class MainActivity extends Activity {
 	private final static String TAG = "com.example.test/MainActivity";
-	//private final static String VIDEO_PATH = "/storage/sdcard0/test.avi";
-	private final static String VIDEO_PATH = "/storage/emulated/legacy/test.avi";
-	private final static int STOP_PLAYER = 0;
+    private final static String[] VIDEO_PATH_OPTIONS = new String[]{
+        "/data/local/tmp/test.avi",
+        "/sdcard/test.avi",
+        "/storage/sdcard0/test.avi",
+        "/storage/emulated/legacy/test.avi"};
+
+    private final static int STOP_PLAYER = 0;
 	private final static int START_PLAYER = 1;
 	private final static int RESUME_PLAYER = 2;
 	private final static int RESTART_PLAYER = 3;
@@ -50,6 +56,7 @@ public class MainActivity extends Activity {
 	private final static int FIRST_RUN = 0;
 	private final static int UNFIRST_RUN = 1;
 
+	private String VIDEO_PATH = "-1";
 	private TextView resultTv;
 	private EditText etNum;
 	private Button startBtn;
@@ -76,6 +83,24 @@ public class MainActivity extends Activity {
 	private boolean mPrepared = false;
 	private boolean mNeedStart = false;
 // liujun.modify
+
+	private boolean initVideoPath(){
+	    boolean ret = false;
+	    startBtn.setEnabled(ret);
+	    stopBtn.setEnabled(ret);
+	    for(String item: VIDEO_PATH_OPTIONS){
+	        File file = new File(item);
+	        if (file.exists() && file.canRead())
+            {
+	            VIDEO_PATH = item;
+	            ret = true;
+	            startBtn.setEnabled(ret);
+	            stopBtn.setEnabled(ret);
+                break;
+            }
+	    }
+	    return ret;
+	}
 
 	public void initview() {
 		Logger.d(TAG, "initview.");
@@ -460,6 +485,10 @@ public class MainActivity extends Activity {
 		if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		}
+		if(!initVideoPath()){
+            Toast.makeText(this.getApplicationContext(), "Not video in phone. copy video to phone.", Toast.LENGTH_LONG).show();
+            return;
+		}
 		if(null != vplayer){
 			vplayer.requestFocus();
 		}
@@ -467,6 +496,7 @@ public class MainActivity extends Activity {
 			newRun = RESUME_RUN;
 			if(!hasSet){
 				hasSet = true;
+				Logger.d(TAG, "VIDEO_PATH ist " + VIDEO_PATH);
 				vplayer.setVideoPath(VIDEO_PATH);
 			}
 		} else if (RESUME_RUN == newRun) {
