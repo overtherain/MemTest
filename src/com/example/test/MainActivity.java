@@ -3,7 +3,7 @@ package com.example.test;
 import java.util.Timer;
 
 import com.cg.memtest.R;
-import com.jnitest.memutils.MEMCHECK;
+import com.jnitest.memutils.memorycheck;
 import com.jnitest.memutils.memcheck;
 import com.self.debug.Logger;
 
@@ -111,12 +111,12 @@ public class MainActivity extends Activity {
 				Logger.d(TAG, "onCompletion.");
 				if(false == isBatteryFull()){
 					Logger.d(TAG, "low battery, need to charge");
-					curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
+					curMemcheck.sendCmd(memorycheck.STAT_BREAK_INT);
 					doTask(STOP_PLAYER);
 //					finish();
 				}else{
 					Logger.d(TAG, "battery status is ok, no need to charge");
-					curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+					curMemcheck.sendCmd(memorycheck.STAT_CONTINUE_INT);
 					doTask(RESTART_PLAYER);
 				}
 			}
@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
 	}
 
 	private int prepState() {
-		int ret = MEMCHECK.RET_OK;
+		int ret = memorycheck.RET_OK;
 		// set audio status
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
@@ -291,7 +291,7 @@ public class MainActivity extends Activity {
 					ret = curMemcheck.doTask(no);
 					result = Integer.parseInt(ret);
 					Logger.d(TAG, ret);
-					if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
+					if (Integer.parseInt(ret) != memorycheck.RET_OK) {
 						stopVideo(FINISH_PLAYER);
 					}
 				}
@@ -308,11 +308,11 @@ public class MainActivity extends Activity {
 		startBtn.setVisibility(View.VISIBLE);
 		stopBtn.setVisibility(View.GONE);
 		if (FINISH_PLAYER != type) {
-			resultTv.setText(MEMCHECK.RET_STR_PAUSE_E);
+			resultTv.setText(memorycheck.RET_STR_PAUSE_E);
 			resultTv.setVisibility(View.VISIBLE);
 		} else {
-			if (Integer.parseInt(ret) != MEMCHECK.RET_OK) {
-				tmp = MEMCHECK.parseResult(TAG, result);
+			if (Integer.parseInt(ret) != memorycheck.RET_OK) {
+				tmp = memorycheck.parseResult(TAG, result);
 				resultTv.setText(tmp);
 				resultTv.setVisibility(View.VISIBLE);
 			}
@@ -354,7 +354,7 @@ public class MainActivity extends Activity {
 			doTask(RESUME_PLAYER);
 		}
 		if(null != curMemcheck){
-			curMemcheck.sendCmd(MEMCHECK.STAT_CONTINUE_INT);
+			curMemcheck.sendCmd(memorycheck.STAT_CONTINUE_INT);
 		}else{
 			Logger.d(TAG, "curMemcheck is null, create a new thread to run memckech.");
 			doMemCheck();
@@ -369,7 +369,7 @@ public class MainActivity extends Activity {
 		if(null != curMemcheck){
 			Logger.d(TAG, "tdMemcheck is not null, just release the resource.");
 			Logger.d(TAG, "send cmd to stop background check memory thread");
-			curMemcheck.sendCmd(MEMCHECK.STAT_BREAK_INT);
+			curMemcheck.sendCmd(memorycheck.STAT_BREAK_INT);
 			doTask(STOP_PLAYER);
 			//tdMemcheck.stop();
 			//tdMemcheck.destroy();

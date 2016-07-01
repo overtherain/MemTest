@@ -7,7 +7,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.test.MainActivity" >
+    tools:context="com.cg.memtest.MainActivity" >
 
     <VideoView
         android:id="@+id/player"
@@ -32,19 +32,19 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:text="1" />
+            android:text="@string/num" />
 
         <Button
             android:id="@+id/startBtn"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="START" />
+            android:text="@string/startBtn" />
 
         <Button
             android:id="@+id/stopBtn"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="STOP" />
+            android:text="@string/stopBtn" />
     </LinearLayout>
 
 </RelativeLayout>
