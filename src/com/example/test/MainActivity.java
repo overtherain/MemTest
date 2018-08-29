@@ -26,6 +26,8 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
+import android.os.RemoteException;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -35,6 +37,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
+// dfsl panlei add
+import android.net.Uri;
+// dfsl panlei end
 
 //public class MainActivity extends ActionBarActivity {
 public class MainActivity extends Activity {
@@ -43,8 +48,11 @@ public class MainActivity extends Activity {
         "/data/local/tmp/test.avi",
         "/sdcard/test.avi",
         "/storage/sdcard0/test.avi",
-        "/storage/emulated/legacy/test.avi"};
-
+        //"/storage/emulated/legacy/test.avi",
+        "/storage/emulated/0/test.avi"};
+	// dfsl panlei add
+	private Uri video_uri;
+	// dfsl panlei end
     private final static int STOP_PLAYER = 0;
 	private final static int START_PLAYER = 1;
 	private final static int RESUME_PLAYER = 2;
@@ -83,6 +91,9 @@ public class MainActivity extends Activity {
 	private boolean mPrepared = false;
 	private boolean mNeedStart = false;
 // liujun.modify
+    private Vibrator mVibrator = null;
+    private static final long[] V_TIME = {0,1000,0,1000};
+    WindowManager.LayoutParams lp;
 
 	private boolean initVideoPath(){
 	    boolean ret = false;
@@ -104,6 +115,8 @@ public class MainActivity extends Activity {
 
 	public void initview() {
 		Logger.d(TAG, "initview.");
+		TextView time = (TextView)findViewById(R.id.tips1);
+		TextView memory = (TextView)findViewById(R.id.tips2);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		resultTv = (TextView) findViewById(R.id.tips);
@@ -117,7 +130,7 @@ public class MainActivity extends Activity {
 		startBtn.setText("START");
 		startBtn.setTextColor(android.graphics.Color.GREEN);
 		startBtn.setShadowLayer(1.0f, 2.0f, 2.0f, android.graphics.Color.BLACK);
-		startBtn.setVisibility(View.VISIBLE);
+		startBtn.setVisibility(View.INVISIBLE);
 		startBtn.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -188,23 +201,29 @@ public class MainActivity extends Activity {
 		int ret = CHK_STR.RET_OK;
 		// set audio status
 		AudioManager mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-		mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
-		mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
-				AudioManager.RINGER_MODE_SILENT, AudioManager.FLAG_PLAY_SOUND);
+		// dfsl panlei add
+		//mAudioManager.setRingerMode(AudioManager.RINGER_MODE_SILENT);
+		//mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+		//		AudioManager.RINGER_MODE_SILENT, AudioManager.FLAG_PLAY_SOUND);
+		int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, maxVolume, 0);
+		// dfsl panlei end
 		// set back light
 		setBrightness(80);
 		return ret;
 	}
 
 	private void setBrightness(int brightness) {
-		/*
-		 * try { Logger.d("Progress", "set brightness"); IHardwareService
-		 * hardware = IHardwareService.Stub
-		 * .asInterface(ServiceManager.getService("hardware")); if (hardware !=
-		 * null) { hardware.setBacklights(brightness); }
-		 * Logger.d("set brightness", "OK"); } catch (RemoteException doe) {
-		 * Logger.d("set brightness", "ERROR"); }
-		 */
+        /*try { 
+            Logger.d("Progress", "set brightness");
+            IHardwareService hardware = IHardwareService.Stub.asInterface(ServiceManager.getService("hardware")); 
+            if (hardware != null) { 
+                hardware.setBacklights(brightness); 
+            }
+            Logger.d("set brightness", "OK"); 
+        } catch (RemoteException doe) {
+            Logger.d("set brightness", "ERROR"); 
+        }*/
 	}
 
 	public void monitorBatteryState() {
@@ -339,7 +358,10 @@ public class MainActivity extends Activity {
 				// liujun.modify
 				if(!hasSet){
 					hasSet = true;
-					vplayer.setVideoPath(VIDEO_PATH);
+					// dfsl panlei add
+					//vplayer.setVideoPath(VIDEO_PATH);
+					vplayer.setVideoURI(video_uri);
+					// dfsl panlei end
 				} else {
 					Logger.d(TAG, "[DayL]video path set");
 				}
@@ -369,6 +391,12 @@ public class MainActivity extends Activity {
 
 	private void startVideo() {
 		Logger.d(TAG, "startVideo.");
+		//dfsl modify by zhangshaobin begin
+		if(mVibrator != null){
+		    mVibrator.vibrate(V_TIME,0);
+		}
+		//dfsl modify end
+        Logger.d(TAG, "startvibrate.");
 		resumeVideo();
 		doMemCheck();
 	}
@@ -383,12 +411,18 @@ public class MainActivity extends Activity {
 			mNeedStart = true;
 		} else {
 			Logger.d(TAG, "[DayL]start on prepared");
+			//dfsl modify by zhangshaobin begin
+			if(mVibrator != null){
+			    mVibrator.vibrate(V_TIME,0);
+			}
+			//dfsl modify end
+	        Logger.d(TAG, "startvibrate.");
 			vplayer.start();
 		}
 		// liujun.modify
 		prepState();
-		startBtn.setVisibility(View.GONE);
-		stopBtn.setVisibility(View.VISIBLE);
+		startBtn.setVisibility(View.INVISIBLE);
+		stopBtn.setVisibility(View.INVISIBLE);
 		resultTv.setVisibility(View.INVISIBLE);
 		etNum.setEnabled(false);
 	}
@@ -420,11 +454,14 @@ public class MainActivity extends Activity {
 		Logger.d(TAG, "stopVideo. type: " + type);
 		String tmp = "";
 		playStatus = STOP_PLAYER;
+        if (mVibrator != null) {
+            mVibrator.cancel();
+        }
 		if(vplayer.isPlaying()){
 //			vplayer.stopPlayback();
 			vplayer.pause();
 		}
-		startBtn.setVisibility(View.VISIBLE);
+		startBtn.setVisibility(View.INVISIBLE);
 		stopBtn.setVisibility(View.GONE);
 		if (FINISH_PLAYER != type) {
 			if (WAIT_CHARGE == type) {
@@ -449,11 +486,20 @@ public class MainActivity extends Activity {
 	private void restartVideo() {
 		Logger.d(TAG, "restartVideo.");
 		// liujun.modify
+		//dfsl modify by zhangshaobin begin
+		if(mVibrator != null){
+		    mVibrator.vibrate(V_TIME,0);
+		}
+		//dfsl modify end
+        Logger.d(TAG, "startvibrate.");
 		if(vplayer.isPlaying()){
 			vplayer.stopPlayback();
 			Logger.d(TAG, "need to stop then start.");
 		}
-		vplayer.setVideoPath(VIDEO_PATH);
+		// dfsl panel add
+		//vplayer.setVideoPath(VIDEO_PATH);
+		vplayer.setVideoURI(video_uri);
+		// dfsl panel end
 		vplayer.start();
 		// liujun.modify
 	}
@@ -468,6 +514,10 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		Logger.d(TAG, "onCreate.");
 		initview();
+		lp = getWindow().getAttributes();
+		lp.screenBrightness = 1.0f;
+		getWindow().setAttributes(lp);
+        mVibrator = (Vibrator) getSystemService(this.VIBRATOR_SERVICE);
 		monitorBatteryState();
 		newRun = CREATE_RUN;
 		if (FIRST_RUN == addTimer) {
@@ -475,6 +525,9 @@ public class MainActivity extends Activity {
 			timer.schedule(task, 5000, 60000*5);
 			addTimer = UNFIRST_RUN;
 		}
+		// dfsl panlei add
+		video_uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.test);
+		// dfsl panlei end
 	}
 
 	@Override
@@ -485,10 +538,10 @@ public class MainActivity extends Activity {
 		if (getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
 			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		}
-		if(!initVideoPath()){
+		/*if(!initVideoPath()){
             Toast.makeText(this.getApplicationContext(), "Not video in phone. copy video to phone.", Toast.LENGTH_LONG).show();
             return;
-		}
+		}*/
 		if(null != vplayer){
 			vplayer.requestFocus();
 		}
@@ -496,8 +549,11 @@ public class MainActivity extends Activity {
 			newRun = RESUME_RUN;
 			if(!hasSet){
 				hasSet = true;
-				Logger.d(TAG, "VIDEO_PATH ist " + VIDEO_PATH);
-				vplayer.setVideoPath(VIDEO_PATH);
+				// dfsl panlei add
+				//Logger.d(TAG, "VIDEO_PATH ist " + VIDEO_PATH);
+				//vplayer.setVideoPath(VIDEO_PATH);
+				vplayer.setVideoURI(video_uri);
+				// dfsl panlei end
 			}
 		} else if (RESUME_RUN == newRun) {
 			doTask(RESUME_PLAYER);
@@ -513,11 +569,36 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	//dfsl add by zhangshaobin begin
+	@Override
+	protected void onPause(){
+	    super.onPause();
+	    Logger.d(TAG, "onPause");
+	    if (mVibrator != null) {
+            mVibrator.cancel();
+            mVibrator = null;
+        }
+	}
+	
+	@Override
+    public void onBackPressed() {
+        Logger.d(TAG, "onBackPressed");
+        
+        this.finish();
+    }
+	//dfsl add end
+	
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
 		Logger.d(TAG, "onDestory");
+        //lp.screenBrightness = -1;
+		//getWindow().setAttributes(lp);
+        if (mVibrator != null) {
+            mVibrator.cancel();
+            mVibrator = null;
+        }
 		if (null != curMemcheck) {
 			Logger.d(TAG, "tdMemcheck is not null, just release the resource.");
 			Logger.d(TAG, "send cmd to stop background check memory thread");

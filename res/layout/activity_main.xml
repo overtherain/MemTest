@@ -20,6 +20,18 @@
         android:layout_height="wrap_content"
         android:text="@string/hello_world" />
 
+    <TextView
+        android:id="@+id/tips1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hello_world" />
+    
+    <TextView
+        android:id="@+id/tips2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hello_world" />
+    
     <LinearLayout
         android:id="@+id/com"
         android:layout_width="wrap_content"
@@ -32,19 +44,19 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:text="1" />
+            android:text="@string/num" />
 
         <Button
             android:id="@+id/startBtn"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="START" />
+            android:text="@string/start" />
 
         <Button
             android:id="@+id/stopBtn"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:text="STOP" />
+            android:text="@string/stop" />
     </LinearLayout>
 
 </RelativeLayout>
